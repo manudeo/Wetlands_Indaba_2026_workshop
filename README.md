@@ -4,7 +4,7 @@ Materials for the 90-minute workshop *From an outline to wetland maps, statistic
 
 ![WetlandMapper classroom workshop, South Africa, 20 October 2026](images/workshop-classroom.jpeg)
 
-*WetlandMapper workshop in South Africa on 20 October 2026.*
+*WetlandMapper workshop during National Wetlands Indaba 2026 at Langebaan, South Africa on 20 October 2026.*
 
 **Notebook 1 (the workshop notebook, start here):**
 
