@@ -2,7 +2,19 @@
 
 Materials for the 90-minute workshop *From an outline to wetland maps, statistics and GeoTIFFs*, convened by Manudeo Singh and Stephen Tooth (Aberystwyth University) and Ruth-Mary Fisher (SANParks). The notebook runs in Google Colab or on your own computer, and you do not need to write code. Upload an outline of your own wetland, press run, and get statistics, figures, GeoTIFFs and wetland polygons.
 
+![WetlandMapper classroom workshop, South Africa, 20 October 2026](images/workshop-classroom.jpeg)
+
+*WetlandMapper workshop in South Africa on 20 October 2026.*
+
+**Notebook 1 (the workshop notebook, start here):**
+
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/manudeo/Wetlands_Indaba_2026_workshop/blob/main/notebooks/WetlandMapper_workshop.ipynb)
+
+**Notebook 2 (the next version, for people who have Earth Engine and have worked through notebook 1):**
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/manudeo/Wetlands_Indaba_2026_workshop/blob/main/notebooks/WetlandMapper_own_regions.ipynb)
+
+Notebook 2 needs Google Earth Engine from the first cell and has no sample data. See [Notebook 2](#notebook-2-your-own-regions-and-wetlands).
 
 Everything is done with [WetlandMapper](https://github.com/manudeo/wetlandmapper) itself: `fetch` downloads the satellite record from Google Earth Engine, `classify_dynamics` and `classify_wct_ema` classify it, and `summarize_dynamics`, `summarize_wct`, `class_area_timeseries`, `summarize_by_polygons`, `linear_trend`, `detect_wet_events`, `build_run_manifest` and the `plot_*` functions summarise and draw it. The notebook adds only short pieces of its own: reading your outline, caching downloads, and writing files. There are no other scripts or modules to install.
 
@@ -24,6 +36,34 @@ Everything is done with [WetlandMapper](https://github.com/manudeo/wetlandmapper
 
 
 **Slides.** The slides on the science are separate from the notebook: `slides/WetlandMapper_workshop.pptx`.
+
+## Notebook 2: your own regions and wetlands
+
+`notebooks/WetlandMapper_own_regions.ipynb` is the next version of the workshop notebook. **It is for people who have Google Earth Engine and have worked through notebook 1.** It has no sample data: everything is downloaded for your own outlines, so the first run takes a few minutes.
+
+It has the same three sections, with more choices:
+
+| Section | What it does | New in notebook 2 |
+|---|---|---|
+| **A. Find the wetlands** | Finds the wetlands in a larger area and gives each an **ID** | Satellite: Landsat (all missions, or one), Sentinel-2, MODIS (Terra, Aqua or both). Water index: AWEIsh, AWEInsh, MNDWI, NDWI. Pixel size |
+| **B. Wetlands through time** | Wet area by year, trend, rainfall link, wetness history and cover types by year, for the wetlands you choose | The same satellite choices; rainfall from ERA5-Land (monthly or daily) or CHIRPS; one wetland, a list of IDs, or all; Section A's wetness history is reused, not calculated again |
+| **C. Cover types for a period** | Wetland Cover Types for any period | Start and end year and month, or the last N days; one composite, one per year or one per month; Level 1 and Level 2 |
+
+**How the sections connect.**
+
+1. Run **A** on a larger area. Each wetland found gets an ID. After A, save the results: the notebook has a save cell after every section (a zip to download, or a copy in Google Drive).
+2. In **Choose your wetlands**, pick the wetlands for B and C: the wetlands found in Section A, the `*_wetland_patches.gpkg` file Section A saved (so you can come back in a new session and use the IDs), or a new outline file of a site you know (KMZ, KML, GeoPackage, GeoJSON, zipped shapefile). Choose all of them, or only the IDs you list, such as `12, 45, 301-310`.
+3. Run **B** and **C** on those wetlands. All the wetlands are downloaded together as one box and each is read from it, so many wetlands in one region cost no more downloads than one.
+
+**Exports.** Every section writes to one folder, `outputs/<project>/`. The tables hold all wetlands, with a `wetland_id` column. There is one GeoTIFF for all the chosen wetlands, or, if you choose it, a separate GeoTIFF and plot for each wetland. A *run name* keeps runs with different settings apart.
+
+**Rainfall.** One regional series is used for all your wetlands, unless they are more than 1000 km apart: then each group of wetlands gets its own series. The rainfall datasets are ERA5-Land monthly and daily (11 km, 1950 on) and CHIRPS daily (5 km, 1981 on, between 50 S and 50 N). The ERA5 products in the Earth Engine catalog outside ERA5-Land stop in 2020, and the monthly IMERG product stops in 2021, so they are not offered.
+
+**Download method.** *xee* (the default) reads images in chunks and suits large areas or long records; results are then held in memory (Colab has about 12 GB). If xee cannot be used in your runtime, the notebook switches to *fetch*, which requests one image at a time. Very large areas may exceed the single-image download limit, so reduce the area or choose a larger pixel size. Choose with *DOWNLOAD_METHOD* in the setup cell.
+
+**Limits.** Earth Engine can still be slow or fail on very large requests. The notebook estimates the size before it downloads and stops when a request looks too large. *One composite per month* over a large area is heavy: the notebook warns you and stops unless you tick *RUN_EVEN_IF_LARGE*. MODIS has 500 m pixels: it suits large lakes, lagoons and coasts and misses small wetlands. Do not mix sensors in one time series. A season that crosses New Year cannot be treated as one season, because yearly images are built per calendar year.
+
+The examples use the included sample data. For a first live Earth Engine run, start with a small area; Earth Engine access depends on your account and project settings. Report problems as an [issue](https://github.com/manudeo/wetlandmapper/issues).
 
 ## Workshop plan (90 minutes)
 
@@ -151,7 +191,7 @@ The notebook finds the repository itself, whether you open it from `notebooks/`,
 ```bash
 git clone https://github.com/manudeo/Wetlands_Indaba_2026_workshop.git
 cd Wetlands_Indaba_2026_workshop
-pip install "wetlandmapper[gee]>=1.2.0" geopandas rioxarray netCDF4 scipy jupyter   # or use your existing environment
+pip install "wetlandmapper[gee]>=1.2.0" "xee>=0.0.24,<0.1.0" geopandas rioxarray netCDF4 scipy jupyter   # or use your existing environment
 jupyter lab notebooks/WetlandMapper_workshop.ipynb                                   # or open it in VS Code
 ```
 
@@ -206,7 +246,9 @@ Sample years with no usable composite are possible: when Landsat 7 was excluded,
 
 ```
 notebooks/WetlandMapper_workshop.ipynb   the workshop notebook
-slides/                                  the workshop slides (pptx), separate from the notebook
+images/workshop-classroom.jpeg           classroom photo from 20 October 2026, South Africa
+slides/                                  the workshop slides (pptx), separate from the notebooks
+notebooks/WetlandMapper_own_regions.ipynb  notebook 2: your own regions and wetlands (needs Earth Engine)
 data/boundaries/                         Langebaan Ramsar site, Agulhas Plain Ramsar wetlands
 data/examples/                           example outlines (the pan as KMZ and GPKG, a 7 km area around it as KMZ) and a field-points template
 data/cache/                              cached sample downloads (filled by the leader cell)
@@ -218,6 +260,9 @@ data/cache/                              cached sample downloads (filled by the 
 - **Langebaan Ramsar site boundary:** Ramsar Sites Information Service ([rsis.ramsar.org](https://rsis.ramsar.org)). The shapefile was supplied as `features_param_idrvis` and is renamed here.
 - **Landsat Collection 2 Level-2:** USGS and NASA. **Sentinel-2:** ESA and Copernicus. **ERA5-Land:** Copernicus and ECMWF. All accessed through Google Earth Engine (Gorelick et al., 2017, *Remote Sensing of Environment* 202, 18-27). See the providers' terms of use.
 
+## Figures on the slides
+
+The slides reproduce figures from the authors' own papers: Singh and Sinha (2022), *Remote Sensing Letters*, Figs. 2 and 3; Singh and Sinha (2021), *Ecological Indicators* 127, 107739, Fig. 4; Singh et al. (2022), *Environmental Monitoring and Assessment*, Figs. 3, 8 and 11. Each figure is credited on its slide.
 
 ## Citation
 
